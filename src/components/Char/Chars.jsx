@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import { Button } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 
+import { increment, decrement } from '../../actions';
 
 import './chars.css';
 const useStyles = makeStyles((theme) => ({
@@ -29,8 +30,8 @@ const useStyles = makeStyles((theme) => ({
     color: "black",
     backgroundColor: "white"
   },
-  disabledButton: {
-    backgroundColor: 'red'
+  buttonPage: {
+    paddingTop: 14
   },
   table: {
     minWidth: 100,
@@ -42,36 +43,51 @@ const Char = () => {
   const [isLoadedChars, setisLoadedChars] = useState(false);
   const [search, setSearch] = useState('');
   const [nextPage, setnextPage] = useState(null);
-  const [prevPage, setPreviousPage] = useState(null); 
+  const [prevPage, setPreviousPage] = useState(null);
   const [charSelected, setCharSelected] = useState('');
-  
+
+  const page = useSelector(state => state.page);
+  const dispatch = useDispatch();
+
   const classes = useStyles();
   const filteredChar = chars.filter(char => {
     return char.name.toLowerCase().includes(search.toLowerCase())
   });
-
+  // const urlAPI ='https://swapi.dev/api/people/';
+  const urlAPIlocal = 'http://localhost:3030/chars/';
   useEffect(() => {
     const fetchingPeopleData = async () => {
       await axios({
         method: 'GET',
-        url: 'https://swapi.dev/api/people/',
+        url: urlAPIlocal + `all?page=${page}&limit=10`,
         responseType: 'json'
       })
         .then(result => {
-          console.log(result.data)
-          setChars(result.data.results);
+          const data = result.data.resultUsers;
+          setChars(data);
           setnextPage(result.data.next);
           setPreviousPage(result.data.previous);
           setisLoadedChars(true);
         })
     }
     fetchingPeopleData();
-  }, [])
+  }, [page])
 
+  const fetchChar = async (event, idChar) => {
+    event.preventDefault(); 
+    await axios({
+      method: 'GET',
+      url: urlAPIlocal + `${idChar}`,
+      responseType: 'json'
+    })
+      .then(result => {
+        setCharSelected(result.data) 
+      })
+  }
   return (
     <div className={classes.root}>
       <div className={classes.content}>
-        <TextField type="text" placeholder="Search Char" onChange={event => setSearch(event.target.value)} variant="outlined" InputProps={{
+        <TextField type="text" placeholder="Filtra tu búsqueda" onChange={event => setSearch(event.target.value)} variant="outlined" InputProps={{
           className: classes.input
         }} />
       </div>
@@ -80,11 +96,10 @@ const Char = () => {
           {
             isLoadedChars ?
               filteredChar.map(char => (
-
-                <Paper className={classes.paper} key={char.id}>
+                <Paper className={classes.paper} key={char._id}>
                   <div className="paper-container">
                     <h3>{char.name}</h3>
-                    <button >Ver</button>
+                    <button onClick={event => { fetchChar(event, char._id) }}>Ver</button>
                   </div>
                 </Paper>
               ))
@@ -92,21 +107,21 @@ const Char = () => {
           }
         </Grid>
         <Grid item xs={6}>
-          <Paper className={classes.paper}> 
-              <Typography variant="subtitle1" gutterBottom> Selecciona un personaje</Typography>
-              <p>{charSelected.name}</p>
-              <p>{charSelected.height}</p>
-              <p>{charSelected.gender}</p>
-              <p>{charSelected.homeworld}</p>
-              <p>{charSelected.population}</p>
+          <Paper className={classes.paper}>
+            <Typography variant="subtitle1" gutterBottom> Selecciona un personaje</Typography>
+            <p>Nombre         : {charSelected.name}</p>
+            <p>Estatura       : {charSelected.height}</p>
+            <p>Genero         : {charSelected.gender}</p>
+            <p>Nombre Planeta : {charSelected.homeworld}</p>
+            <p>Poblacion total: {charSelected.population}</p>
           </Paper>
         </Grid>
       </Grid>
 
       {/* <div className={classes.content}> */}
-      <div className="button-page">
-        {prevPage ? <Button classes={{ disabled: classes.disabledButton }}>Anterior</Button> : <Button disabled={true}>Anterior</Button>}
-        {nextPage ? <Button>Siguiente</Button> : <Button disabled={true}>Siguiente</Button>}
+      <div className={classes.buttonPage}>
+        {prevPage ? <button classes={classes.pagedButton} onClick={() => dispatch(decrement(1))}>Anterior</button> : <button disabled={true}>Anterior</button>}
+        {nextPage ? <button onClick={() => dispatch(increment(1))}>Siguiente</button > : <button disabled={true}>Siguiente</button>}
       </div>
     </div>
   )
