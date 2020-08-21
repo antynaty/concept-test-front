@@ -3,9 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
+import { Paper, Grid } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
+import { Button } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 
+
+import './chars.css';
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -18,7 +22,18 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     alignItems: 'center',
-    padding: theme.spacing(7, 5)
+    padding: theme.spacing(7, 5),
+    color: 'white'
+  },
+  input: {
+    color: "black",
+    backgroundColor: "white"
+  },
+  disabledButton: {
+    backgroundColor: 'red'
+  },
+  table: {
+    minWidth: 100,
   },
 }));
 
@@ -26,7 +41,10 @@ const Char = () => {
   const [chars, setChars] = useState([]);
   const [isLoadedChars, setisLoadedChars] = useState(false);
   const [search, setSearch] = useState('');
-
+  const [nextPage, setnextPage] = useState(null);
+  const [prevPage, setPreviousPage] = useState(null); 
+  const [charSelected, setCharSelected] = useState('');
+  
   const classes = useStyles();
   const filteredChar = chars.filter(char => {
     return char.name.toLowerCase().includes(search.toLowerCase())
@@ -40,36 +58,56 @@ const Char = () => {
         responseType: 'json'
       })
         .then(result => {
-          console.log(result.data.results)
+          console.log(result.data)
           setChars(result.data.results);
+          setnextPage(result.data.next);
+          setPreviousPage(result.data.previous);
           setisLoadedChars(true);
         })
     }
     fetchingPeopleData();
   }, [])
+
   return (
     <div className={classes.root}>
-      <input type="text" placeholder="Search Char" onChange={event => setSearch(event.target.value)} />
-      <Grid container spacing={3}>
-        <div className={classes.content}>
-          <h1>Star Wars Chars</h1>
-        </div>
-        <Grid item xs={12}>
+      <div className={classes.content}>
+        <TextField type="text" placeholder="Search Char" onChange={event => setSearch(event.target.value)} variant="outlined" InputProps={{
+          className: classes.input
+        }} />
+      </div>
+      <Grid container className={classes.root} spacing={2}>
+        <Grid item xs={6}>
           {
             isLoadedChars ?
-
               filteredChar.map(char => (
+
                 <Paper className={classes.paper} key={char.id}>
-                  <div className="titular-container">
+                  <div className="paper-container">
                     <h3>{char.name}</h3>
-                    <button >X</button>
+                    <button >Ver</button>
                   </div>
                 </Paper>
               ))
               : <p>Loading Chars...</p>
           }
         </Grid>
+        <Grid item xs={6}>
+          <Paper className={classes.paper}> 
+              <Typography variant="subtitle1" gutterBottom> Selecciona un personaje</Typography>
+              <p>{charSelected.name}</p>
+              <p>{charSelected.height}</p>
+              <p>{charSelected.gender}</p>
+              <p>{charSelected.homeworld}</p>
+              <p>{charSelected.population}</p>
+          </Paper>
+        </Grid>
       </Grid>
+
+      {/* <div className={classes.content}> */}
+      <div className="button-page">
+        {prevPage ? <Button classes={{ disabled: classes.disabledButton }}>Anterior</Button> : <Button disabled={true}>Anterior</Button>}
+        {nextPage ? <Button>Siguiente</Button> : <Button disabled={true}>Siguiente</Button>}
+      </div>
     </div>
   )
 }

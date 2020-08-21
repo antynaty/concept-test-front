@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
+import TextField from '@material-ui/core/TextField';
+
 const SearchBar = () => {
   const [search, setSearch] = useState('');
   const chars = useSelector(state => state.chars);
@@ -9,7 +11,7 @@ const SearchBar = () => {
   });
   return (
     <React.Fragment>
-      <input type="text" placeholder="Search Char" onChange={event => setSearch(event.target.value)} />
+      <TextField type="text" placeholder="Search Char" onChange={event => setSearch(event.target.value)} variant="outlined" />
     </React.Fragment>
   )
 }

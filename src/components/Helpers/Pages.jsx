@@ -1,10 +1,10 @@
 import React from 'react';
-
-const Pages = ()=> {
+import { Button } from '@material-ui/core';
+const Pages = () => {
   return (
     <div className="App">
-      <button>Anterior</button>
-      <button>Next</button>
+      <Button>Anterior</Button>
+      <Button>Next</Button>
     </div>
 
   );
